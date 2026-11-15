@@ -16,11 +16,13 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          # Убрали cache: npm, так как нет package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
