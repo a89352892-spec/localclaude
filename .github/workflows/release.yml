@@ -4,6 +4,9 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -22,7 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Убрали # # cache: npm, так как нет package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
