@@ -149,15 +149,15 @@ mod commands {
 
     #[tauri::command]
     pub fn get_workdir() -> String { workdir().display().to_string() }
-}
 
-#[tauri::command]
-pub fn load_gguf(path: String) -> Result<String, String> {
-    let p = std::path::Path::new(&path);
-    if p.exists() {
-        Ok(format!("GGUF файл найден: {}. Для работы запустите llama.cpp на порту 8080.", path))
-    } else {
-        Err("Файл не найден".into())
+    #[tauri::command]
+    pub fn load_gguf(path: String) -> Result<String, String> {
+        let p = std::path::Path::new(&path);
+        if p.exists() {
+            Ok(format!("GGUF файл найден: {}. Запустите llama.cpp на порту 8080.", path))
+        } else {
+            Err("Файл не найден".into())
+        }
     }
 }
 
@@ -167,7 +167,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::chat, commands::tool_read_file, commands::tool_write_file, commands::tool_edit_file,
-            commands::tool_list_dir, commands::tool_bash, commands::set_workdir, commands::get_workdir, commands::load_gguf
+            commands::tool_list_dir, commands::tool_bash, commands::set_workdir, commands::get_workdir,
+            commands::load_gguf
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri app");
