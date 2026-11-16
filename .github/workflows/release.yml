@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Убрали # cache: npm, так как нет package-lock.json
+          # Убрали # # cache: npm, так как нет package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
