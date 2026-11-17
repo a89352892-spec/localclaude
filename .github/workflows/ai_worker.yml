@@ -1,0 +1,44 @@
+name: LFM3 AI Worker
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  ai_job:
+    if: github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install llama.cpp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git
+          git clone https://github.com/ggerganov/llama.cpp
+          cd llama.cpp
+          mkdir build && cd build
+          cmake .. -DLLAMA_CURL=ON
+          cmake --build . --config Release -j $(nproc)
+          echo "$PWD/bin" >> $GITHUB_PATH
+
+      - name: Download Model from Hugging Face
+        run: |
+          # Скачиваем модель LFM3-1.7B (Q4_K_M ~1.1 GB)
+          curl -L -o lfm3.gguf "https://huggingface.co/AtomicChat/LFM3-1.7B-Uncensored-GGUF/resolve/main/LFM3-1.7B-Uncensored-AD-Q4_K_M.gguf"
+          ls -lh lfm3.gguf
+
+      - name: Run AI and Reply
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USER_TEXT: ${{ github.event.comment.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Запускаем модель и передаем ей запрос
+          RESPONSE=$(llama-cli -m lfm3.gguf -p "User: $USER_TEXT\nAI:" -n 512 --temp 0.7 -no-cnv 2>/dev/null)
+          
+          # Отправляем ответ в Issue
+          gh issue comment $ISSUE_NUMBER --body "$RESPONSE"
