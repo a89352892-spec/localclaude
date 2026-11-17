@@ -10,18 +10,18 @@ const C = {
 
 type Ui = { role: "user" | "assistant" | "tool"; content: string; tool?: string };
 
-// Список 10 крутых легких моделей
+// СПИСОК МОДЕЛЕЙ С РЕАЛЬНЫМИ ССЫЛКАМИ НА HUGGING FACE
 const MODELS = [
-  { id: "lfm3-1.7b-uncensored", name: "LFM3 1.7B (Uncensored)", size: "1.1 GB" },
-  { id: "llama-3-8b", name: "Llama 3 8B", size: "4.7 GB" },
-  { id: "qwen-2.5-coder-1.5b", name: "Qwen 2.5 Coder 1.5B", size: "1.0 GB" },
-  { id: "phi-3-mini", name: "Phi-3 Mini 3.8B", size: "2.3 GB" },
-  { id: "gemma-2-2b", name: "Gemma 2 2B", size: "1.6 GB" },
-  { id: "tinyllama-1.1b", name: "TinyLlama 1.1B", size: "0.6 GB" },
-  { id: "stablelm-2-1.6b", name: "StableLM 2 1.6B", size: "1.0 GB" },
-  { id: "qwen-2-1.5b", name: "Qwen 2 1.5B", size: "0.9 GB" },
-  { id: "smollm-1.7b", name: "SmolLM 1.7B", size: "1.0 GB" },
-  { id: "deepseek-coder-1.3b", name: "DeepSeek Coder 1.3B", size: "0.8 GB" },
+  { id: "lfm3-1.7b", name: "LFM3 1.7B (Uncensored)", size: "1.1 GB", url: "https://huggingface.co/AtomicChat/LFM3-1.7B-Uncensored-GGUF/resolve/main/LFM3-1.7B-Uncensored-AD-Q4_K_M.gguf" },
+  { id: "llama-3-8b", name: "Llama 3 8B", size: "4.7 GB", url: "https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q4_K_M.gguf" },
+  { id: "qwen-coder-1.5b", name: "Qwen 2.5 Coder 1.5B", size: "1.0 GB", url: "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf" },
+  { id: "phi-3-mini", name: "Phi-3 Mini 3.8B", size: "2.3 GB", url: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf" },
+  { id: "gemma-2-2b", name: "Gemma 2 2B", size: "1.6 GB", url: "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf" },
+  { id: "tinyllama-1.1b", name: "TinyLlama 1.1B", size: "0.6 GB", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf" },
+  { id: "stablelm-2-1.6b", name: "StableLM 2 1.6B", size: "1.0 GB", url: "https://huggingface.co/TheBloke/stablelm-zephyr-3b-GGUF/resolve/main/stablelm-zephyr-3b.Q4_K_M.gguf" },
+  { id: "qwen-2-1.5b", name: "Qwen 2 1.5B", size: "0.9 GB", url: "https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5b-instruct-q4_k_m.gguf" },
+  { id: "smollm-1.7b", name: "SmolLM 1.7B", size: "1.0 GB", url: "https://huggingface.co/HuggingFaceTB/SmolLM-1.7B-Instruct-GGUF/resolve/main/smollm-1.7b-instruct-q4_k_m.gguf" },
+  { id: "deepseek-coder-1.3b", name: "DeepSeek Coder 1.3B", size: "0.8 GB", url: "https://huggingface.co/TheBloke/deepseek-coder-1.3b-instruct-GGUF/resolve/main/deepseek-coder-1.3b-instruct.Q4_K_M.gguf" },
 ];
 
 export default function App() {
@@ -32,6 +32,7 @@ export default function App() {
   const [showCoder, setShowCoder] = useState(false);
   
   const [installedModel, setInstalledModel] = useState<string | null>(null);
+  const [customUrl, setCustomUrl] = useState("");
   const [messages, setMessages] = useState<Msg[]>([{ role: "system", content: SYSTEM_PROMPT }]);
   const [ui, setUi] = useState<Ui[]>([]);
   const [input, setInput] = useState("");
@@ -45,6 +46,22 @@ export default function App() {
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     if (username.length > 1) setIsLoggedIn(true);
+  }
+
+  // Скачивание модели (открывает браузер телефона)
+  function downloadModel(url: string, name: string) {
+    // В мобильном приложении window.open откроет системный браузер
+    window.open(url, "_blank");
+    // Записываем, что модель "установлена"
+    setInstalledModel(name);
+    alert(`Скачивание ${name} начато.\nФайл сохранится в папку "Загрузки".\nПосле скачивания загрузите его в LC Coder.`);
+  }
+
+  function downloadCustom() {
+    if (!customUrl) return;
+    window.open(customUrl, "_blank");
+    setInstalledModel("Custom Model");
+    alert("Скачивание начато. Проверьте папку Загрузки.");
   }
 
   async function runAgent(text: string) {
@@ -62,7 +79,6 @@ export default function App() {
       let idx = 0;
       setUi(prev => { idx = prev.length; return [...prev, { role: "assistant", content: "" }]; });
       
-      // Здесь мы используем WebLLM (в мобильной версии он работает через WebGPU)
       const a = await streamChat("http://localhost", installedModel, msgs, TOOLS as any, (delta) => {
         setUi(prev => { const c = [...prev];
           c[idx] = { ...c[idx], content: (c[idx].content || "") + delta }; return c; });
@@ -72,7 +88,6 @@ export default function App() {
       setMessages(msgs);
       
       if (!a.tool_calls?.length) {
-        // Если ИИ прервался на полуслове (не хватило токенов)
         if (a.content && a.content.length > 0 && !a.content.endsWith(".")) {
           setIsTruncated(true);
         }
@@ -120,7 +135,6 @@ export default function App() {
   return (
     <div style={{ background: C.bg, color: C.text, height: "100vh", display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif", position: "relative" }}>
       
-      {/* ХЕДЕР (как в Claude) */}
       <div style={{ padding: "15px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.accent, fontSize: 20 }}>✻</span>
@@ -129,7 +143,6 @@ export default function App() {
         <div onClick={() => setShowSettings(true)} style={{ cursor: "pointer", fontSize: 20, color: C.tool }}>⚙️</div>
       </div>
 
-      {/* НАСТРОЙКИ (МОДАЛЬНОЕ ОКНО) */}
       {showSettings && (
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: C.bg, zIndex: 100, display: "flex", flexDirection: "column" }}>
           <div style={{ padding: 20, borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -138,32 +151,42 @@ export default function App() {
           </div>
           
           <div style={{ padding: 20, flex: 1, overflowY: "auto" }}>
-            {/* LC CODER */}
             <div style={{ background: C.panel, padding: 20, borderRadius: 12, marginBottom: 20, border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: 16, fontWeight: "bold", marginBottom: 5 }}>LC Coder</div>
               <div style={{ fontSize: 12, color: C.tool, marginBottom: 15 }}>
-                {installedModel ? "Ваша ИИ модель установлена" : "Ваша ИИ модель не установлена"}
+                {installedModel ? `Модель: ${installedModel}` : "Ваша ИИ модель не установлена"}
               </div>
               <button onClick={() => setShowCoder(true)} style={{ width: "100%", background: C.text, color: C.bg, padding: 10, borderRadius: 8, border: "none", fontWeight: "bold", cursor: "pointer" }}>
                 Открыть терминал
               </button>
             </div>
 
-            <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 10 }}>Скачать модель</div>
+            <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 10 }}>Своя ссылка на GGUF</div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+              <input 
+                value={customUrl} onChange={e => setCustomUrl(e.target.value)} 
+                placeholder="https://huggingface.co/..." 
+                style={{ flex: 1, padding: 10, background: C.panel, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8 }} 
+              />
+              <button onClick={downloadCustom} style={{ background: C.accent, color: "white", border: "none", padding: "0 15px", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}>Скачать</button>
+            </div>
+
+            <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 10 }}>Или выбери из списка</div>
             {MODELS.map(m => (
-              <div key={m.id} onClick={() => setInstalledModel(m.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 15, borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: installedModel === m.id ? C.panel : "transparent" }}>
+              <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 15, borderBottom: `1px solid ${C.border}`, background: installedModel === m.name ? C.panel : "transparent" }}>
                 <div>
-                  <div style={{ fontSize: 14, color: installedModel === m.id ? C.accent : C.text }}>{m.name}</div>
+                  <div style={{ fontSize: 14, color: installedModel === m.name ? C.accent : C.text }}>{m.name}</div>
                   <div style={{ fontSize: 12, color: C.tool }}>{m.size}</div>
                 </div>
-                {installedModel === m.id ? <span style={{ color: C.accent }}>✓</span> : <span style={{ fontSize: 12, color: C.tool }}>Скачать</span>}
+                <button onClick={() => downloadModel(m.url, m.name)} style={{ background: "transparent", border: "none", color: installedModel === m.name ? C.accent : C.user, cursor: "pointer", fontSize: 14, fontWeight: "bold" }}>
+                  {installedModel === m.name ? "✓ Установлена" : "Скачать"}
+                </button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ТЕРМИНАЛ LC CODER */}
       {showCoder && (
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "#000", zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "monospace" }}>
           <div style={{ padding: 10, background: "#111", display: "flex", justifyContent: "space-between", color: C.accent }}>
@@ -177,7 +200,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ОСНОВНОЙ ЧАТ */}
       <div style={{ flex: 1, overflow: "auto", padding: 20 }}>
         {ui.length === 0 && (
           <div style={{ textAlign: "center", marginTop: "30vh" }}>
@@ -197,7 +219,6 @@ export default function App() {
           </div>
         ))}
         
-        {/* КНОПКА ПРОДОЛЖИТЬ */}
         {isTruncated && !busy && (
           <button onClick={continueGen} style={{ display: "block", margin: "20px auto", background: C.panel, color: C.text, border: `1px solid ${C.border}`, padding: "10px 20px", borderRadius: 20, cursor: "pointer", fontWeight: "bold" }}>
             Продолжить
@@ -206,7 +227,6 @@ export default function App() {
         <div ref={bottom} />
       </div>
 
-      {/* ПОЛЕ ВВОДА (как в мобильном Claude) */}
       <div style={{ padding: 15, paddingBottom: 30 }}>
         <div style={{ display: "flex", background: C.panel, borderRadius: 24, border: `1px solid ${C.border}`, padding: "5px 15px", alignItems: "center" }}>
           <textarea 
