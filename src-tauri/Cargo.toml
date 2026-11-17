@@ -1,6 +1,6 @@
 [package]
 name = "localclaude"
-version = "3.0.0"
+version = "3.5.0"
 description = "Local-first Claude Code clone"
 edition = "2021"
 

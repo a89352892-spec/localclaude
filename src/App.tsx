@@ -4,7 +4,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { streamChat, SYSTEM_PROMPT, type Msg } from "./agent";
 import { TOOLS, CMD } from "./tools";
 
-// Цвета оригинального Claude
+// Цвета 1:1 как у Claude
 const C = {
   bg: "#1c1b19", sidebar: "#141413", panel: "#242220", border: "#3b3833",
   text: "#e5e3d7", accent: "#d97757", user: "#8ab4f8", tool: "#a09f99",
@@ -17,16 +17,18 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
 
   const [messages, setMessages] = useState<Msg[]>([{ role: "system", content: SYSTEM_PROMPT }]);
   const [ui, setUi] = useState<Ui[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [model, setModel] = useState("claude-3-5-sonnet-latest");
+  
+  // По умолчанию ставим настройки для работы с GitHub
+  const [model, setModel] = useState("lfm3-1.7b-github");
   const [baseUrl, setBaseUrl] = useState("http://localhost:11434");
   const [workdir, setWorkdir] = useState("");
   
-  const [ggufPath, setGgufPath] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => { invoke<string>("get_workdir").then(setWorkdir).catch(() => {}); }, []);
@@ -48,17 +50,6 @@ export default function App() {
     if (typeof p === "string") {
       const real = await invoke<string>("set_workdir", { path: p });
       setWorkdir(real);
-    }
-  }
-
-  async function pickGguf() {
-    const p = await open({ filters: [{ name: "GGUF", extensions: ["gguf"] }] });
-    if (typeof p === "string") {
-      setGgufPath(p);
-      const msg = await invoke<string>("load_gguf", { path: p });
-      alert(msg + "\n\nНастройте URL на http://localhost:8080 чтобы использовать локальную модель.");
-      setBaseUrl("http://localhost:8080");
-      setModel("local-model");
     }
   }
 
@@ -100,12 +91,13 @@ export default function App() {
     const t = input; setInput(""); runAgent(t);
   }
 
+  // ЭКРАН ЛОГИНА
   if (!isLoggedIn) {
     return (
       <div style={{ background: C.bg, color: C.text, height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "ui-monospace, Menlo" }}>
         <form onSubmit={handleLogin} style={{ background: C.panel, padding: 40, borderRadius: 8, border: `1px solid ${C.border}`, width: 300, textAlign: "center" }}>
-          <h2 style={{ color: C.accent, marginTop: 0 }}>Claude Code</h2>
-          <p style={{ fontSize: 12, color: C.tool }}>Вход в систему</p>
+          <h2 style={{ color: C.accent, marginTop: 0, fontWeight: "normal" }}>✻ LC</h2>
+          <p style={{ fontSize: 12, color: C.tool }}>Local Claude Code</p>
           <input placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} style={{ width: "90%", padding: 10, marginBottom: 10, background: C.bg, border: `1px solid ${C.border}`, color: C.text, borderRadius: 4 }} />
           <input placeholder="Пароль" type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: "90%", padding: 10, marginBottom: 15, background: C.bg, border: `1px solid ${C.border}`, color: C.text, borderRadius: 4 }} />
           {loginError && <p style={{ color: "red", fontSize: 12 }}>{loginError}</p>}
@@ -118,11 +110,39 @@ export default function App() {
   return (
     <div style={{ background: C.bg, color: C.text, height: "100vh", display: "flex", fontFamily: "ui-monospace, Menlo", overflow: "hidden" }}>
       
+      {/* ОКНО НАСТРОЕК (МОДАЛЬНОЕ) */}
+      {showSettings && (
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: C.panel, padding: 30, borderRadius: 8, border: `1px solid ${C.border}`, width: 400 }}>
+            <h3 style={{ color: C.accent, marginTop: 0 }}>Настройки</h3>
+            
+            <div style={{ marginBottom: 15 }}>
+              <div style={{ fontSize: 12, color: C.tool, marginBottom: 5 }}>Аккаунт</div>
+              <input value={username} disabled style={{ width: "95%", padding: 8, background: C.bg, border: `1px solid ${C.border}`, color: C.text, borderRadius: 4 }} />
+            </div>
+
+            <div style={{ marginBottom: 15 }}>
+              <div style={{ fontSize: 12, color: C.tool, marginBottom: 5 }}>Модель</div>
+              <input value={model} onChange={e => setModel(e.target.value)} style={{ width: "95%", padding: 8, background: C.bg, border: `1px solid ${C.border}`, color: C.text, borderRadius: 4 }} />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: C.tool, marginBottom: 5 }}>API URL</div>
+              <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)} style={{ width: "95%", padding: 8, background: C.bg, border: `1px solid ${C.border}`, color: C.text, borderRadius: 4 }} />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <button onClick={() => setShowSettings(false)} style={{ background: C.accent, color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", fontWeight: "bold" }}>Сохранить</button>
+              <button onClick={() => { setShowSettings(false); setIsLoggedIn(false); }} style={{ background: "transparent", color: "red", border: "1px solid red", padding: "8px 16px", borderRadius: 4, cursor: "pointer" }}>Выйти из аккаунта</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ЛЕВАЯ ПАНЕЛЬ */}
-      <div style={{ width: 280, background: C.sidebar, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: 20, borderBottom: `1px solid ${C.border}`, color: C.accent, fontWeight: "bold", fontSize: 16, display: "flex", justifyContent: "space-between" }}>
-          <span>✻ Claude Code</span>
-          <span style={{ fontSize: 10, color: C.tool, alignSelf: "center" }}>v3.0</span>
+      <div style={{ width: 260, background: C.sidebar, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: 20, borderBottom: `1px solid ${C.border}`, color: C.accent, fontWeight: "bold", fontSize: 18 }}>
+          ✻ LC <span style={{ fontSize: 10, color: C.tool, fontWeight: "normal" }}>v3.5</span>
         </div>
         
         <div style={{ padding: 20, flex: 1, overflowY: "auto" }}>
@@ -131,21 +151,17 @@ export default function App() {
           <button onClick={pickFolder} style={{ width: "100%", background: C.panel, color: C.text, border: `1px solid ${C.border}`, padding: "8px", borderRadius: 4, cursor: "pointer", fontSize: 12 }}>
             Выбрать папку
           </button>
-
-          <div style={{ color: C.tool, fontSize: 11, textTransform: "uppercase", marginTop: 30, marginBottom: 10, letterSpacing: 1 }}>Модель (GGUF)</div>
-          <button onClick={pickGguf} style={{ width: "100%", background: C.panel, color: C.text, border: `1px dashed ${C.border}`, padding: "12px", borderRadius: 4, cursor: "pointer", fontSize: 12 }}>
-            📁 Загрузить .gguf
-          </button>
-          {ggufPath && <div style={{ fontSize: 10, color: C.accent, marginTop: 8, wordBreak: "break-all" }}>Выбран: {ggufPath.split('\\').pop()}</div>}
-        
-          <div style={{ color: C.tool, fontSize: 11, textTransform: "uppercase", marginTop: 30, marginBottom: 10, letterSpacing: 1 }}>Настройки</div>
-          <input value={model} onChange={e => setModel(e.target.value)} placeholder="Модель" style={{ width: "90%", background: C.panel, border: `1px solid ${C.border}`, color: C.text, padding: "8px", borderRadius: 4, marginBottom: 8, fontSize: 12 }} />
-          <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)} placeholder="URL" style={{ width: "90%", background: C.panel, border: `1px solid ${C.border}`, color: C.text, padding: "8px", borderRadius: 4, fontSize: 12 }} />
+          
+          <div style={{ color: C.tool, fontSize: 11, textTransform: "uppercase", marginTop: 30, marginBottom: 10, letterSpacing: 1 }}>Модель</div>
+          <div style={{ fontSize: 12, color: C.accent }}>{model}</div>
+          <div style={{ fontSize: 11, color: C.tool, marginTop: 5 }}>{baseUrl}</div>
         </div>
 
-        <div style={{ padding: 20, borderTop: `1px solid ${C.border}`, fontSize: 12, color: C.tool }}>
-          Пользователь: <span style={{ color: C.text }}>{username}</span>
-          <button onClick={() => setIsLoggedIn(false)} style={{ background: "transparent", color: "red", border: "none", cursor: "pointer", marginTop: 10, padding: 0, fontSize: 12 }}>Выйти</button>
+        <div style={{ padding: 20, borderTop: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 12, color: C.text }}>{username}</span>
+          <button onClick={() => setShowSettings(true)} style={{ background: "transparent", color: C.tool, border: "none", cursor: "pointer", fontSize: 16 }} title="Настройки">
+            ⚙️
+          </button>
         </div>
       </div>
 
@@ -154,8 +170,8 @@ export default function App() {
         <div style={{ flex: 1, overflow: "auto", padding: "40px 10%" }}>
           {ui.length === 0 && (
             <div style={{ marginTop: 50, textAlign: "center" }}>
-              <h1 style={{ color: C.accent, fontSize: 24, fontWeight: "normal" }}>✻ Добро пожаловать в Claude Code</h1>
-              <p style={{ color: C.tool, fontSize: 14 }}>Мы справимся с любой задачей.</p>
+              <h1 style={{ color: C.accent, fontSize: 24, fontWeight: "normal" }}>✻ Local Claude Code</h1>
+              <p style={{ color: C.tool, fontSize: 14 }}>Мы справимся с любой задачей. (v3.5)</p>
             </div>
           )}
           {ui.map((m, i) => (
