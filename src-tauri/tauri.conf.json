@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "LocalClaude",
-  "version": "3.5.0",
-  "identifier": "com.localclaude.app",
+  "version": "1.0.0",
+  "identifier": "ai.lc.com",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
