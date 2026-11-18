@@ -47,7 +47,7 @@ export default function App() {
     setLoadingProgress("Инициализация llama.cpp...");
     try {
       const llama = LlamaCpp; // Плагин Capacitor — это готовый объект, а не класс
-      await llama.initContext({
+      await (llama.initContext as any)({
         model: modelPath,
         n_ctx: 2048,
         n_threads: 4,
