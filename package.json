@@ -1,7 +1,7 @@
 {
   "name": "lc-mobile",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
+    "@capacitor/android": "^6.0.0",
+    "llama-cpp-capacitor": "^0.2.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
