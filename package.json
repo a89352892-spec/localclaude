@@ -14,8 +14,8 @@
     "@tauri-apps/plugin-dialog": "^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
     "llama-cpp-capacitor": "^0.2.2"
   },
   "devDependencies": {
@@ -25,6 +25,6 @@
     "@vitejs/plugin-react": "^4.3.1",
     "typescript": "^5.5.3",
     "vite": "^5.3.4",
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "^8.0.0"
   }
 }
