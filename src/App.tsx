@@ -32,7 +32,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   
   const bottom = useRef<HTMLDivElement>(null);
-  const llamaRef = useRef<LlamaCpp | null>(null);
+  const llamaRef = useRef<any>(null);
 
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: "smooth" }); }, [ui]);
 
@@ -46,7 +46,7 @@ export default function App() {
     setLoadingModel(true);
     setLoadingProgress("Инициализация llama.cpp...");
     try {
-      const llama = new LlamaCpp();
+      const llama = LlamaCpp; // Плагин Capacitor — это готовый объект, а не класс
       await llama.initContext({
         model: modelPath,
         n_ctx: 2048,
